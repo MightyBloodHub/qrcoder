@@ -30,7 +30,7 @@ def get_gradient_color(colors, x, y, width, height):
     b = int(colors[0][2] * (1 - ratio) + colors[1][2] * ratio)
     return (r, g, b)
 
-def create_qr_code(data, logo_path=None, filename="custom_qrcode.png", qr_color="black", bg_color="white", shape="circle", gradient=False):
+def create_qr_code(data, logo_path=None, filename="custom_qrcode.png", qr_color="black", bg_color="white", shape="circle", gradient=False, frame_width=0, frame_color="black"):
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
@@ -79,6 +79,11 @@ def create_qr_code(data, logo_path=None, filename="custom_qrcode.png", qr_color=
         pos = ((combined.size[0] - logo.size[0]) // 2, (combined.size[1] - logo.size[1]) // 2)
         combined.paste(logo, pos, mask=logo)
 
+    if frame_width > 0:
+        img_with_frame = Image.new('RGB', (combined.size[0] + 2 * frame_width, combined.size[1] + 2 * frame_width), frame_color)
+        img_with_frame.paste(combined, (frame_width, frame_width))
+        combined = img_with_frame
+
     combined.save(filename)
 
 class QRCodeApp:
@@ -123,11 +128,31 @@ class QRCodeApp:
         self.gradient_check = tk.Checkbutton(root, variable=self.gradient)
         self.gradient_check.grid(row=5, column=1, padx=10, pady=10)
 
+        self.frame_width_label = tk.Label(root, text="Frame Width:")
+        self.frame_width_label.grid(row=6, column=0, padx=10, pady=10)
+        self.frame_width = tk.IntVar(value=10)
+        self.frame_width_entry = tk.Entry(root, textvariable=self.frame_width, width=10)
+        self.frame_width_entry.grid(row=6, column=1, padx=10, pady=10)
+
+        self.frame_color_label = tk.Label(root, text="Frame Color:")
+        self.frame_color_label.grid(row=7, column=0, padx=10, pady=10)
+        self.frame_color = tk.StringVar(value="black")
+        self.frame_color_button = tk.Button(root, text="Choose Frame Color", command=self.choose_frame_color)
+        self.frame_color_button.grid(row=7, column=1, padx=10, pady=10)
+
         self.generate_button = tk.Button(root, text="Generate QR Code", command=self.generate_qr_code)
-        self.generate_button.grid(row=6, column=0, columnspan=3, pady=20)
+        self.generate_button.grid(row=8, column=0, columnspan=3, pady=20)
 
     def browse_logo(self):
-        filename = filedialog.askopenfilename(filetypes=[("Image files", "*.png"), ("Image files", "*.jpg"), ("Image files", "*.jpeg"), ("Image files", "*.gif")])
+        filename = filedialog.askopenfilename(
+            filetypes=[
+                ("PNG files", "*.png"),
+                ("JPEG files", "*.jpg"),
+                ("JPEG files", "*.jpeg"),
+                ("GIF files", "*.gif"),
+                ("All files", "*.*")
+            ]
+        )
         if filename:
             self.logo_path.set(filename)
 
@@ -141,6 +166,11 @@ class QRCodeApp:
         if color[1]:
             self.bg_color.set(color[1])
 
+    def choose_frame_color(self):
+        color = colorchooser.askcolor(title="Choose Frame Color")
+        if color[1]:
+            self.frame_color.set(color[1])
+
     def generate_qr_code(self):
         data = self.url_entry.get()
         logo_path = self.logo_path.get()
@@ -148,7 +178,9 @@ class QRCodeApp:
         bg_color = self.bg_color.get()
         shape = self.shape.get()
         gradient = self.gradient.get()
-        create_qr_code(data, logo_path, qr_color=qr_color, bg_color=bg_color, shape=shape, gradient=gradient)
+        frame_width = self.frame_width.get()
+        frame_color = self.frame_color.get()
+        create_qr_code(data, logo_path, qr_color=qr_color, bg_color=bg_color, shape=shape, gradient=gradient, frame_width=frame_width, frame_color=frame_color)
 
 if __name__ == "__main__":
     root = tk.Tk()
