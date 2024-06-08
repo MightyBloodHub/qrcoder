@@ -140,8 +140,12 @@ class QRCodeApp:
         self.frame_color_button = tk.Button(root, text="Choose Frame Color", command=self.choose_frame_color)
         self.frame_color_button.grid(row=7, column=1, padx=10, pady=10)
 
+        self.no_frame = tk.BooleanVar(value=False)
+        self.no_frame_check = tk.Checkbutton(root, text="No Frame", variable=self.no_frame)
+        self.no_frame_check.grid(row=8, column=0, padx=10, pady=10)
+
         self.generate_button = tk.Button(root, text="Generate QR Code", command=self.generate_qr_code)
-        self.generate_button.grid(row=8, column=0, columnspan=3, pady=20)
+        self.generate_button.grid(row=9, column=0, columnspan=3, pady=20)
 
     def browse_logo(self):
         filename = filedialog.askopenfilename(
@@ -178,7 +182,7 @@ class QRCodeApp:
         bg_color = self.bg_color.get()
         shape = self.shape.get()
         gradient = self.gradient.get()
-        frame_width = self.frame_width.get()
+        frame_width = 0 if self.no_frame.get() else self.frame_width.get()
         frame_color = self.frame_color.get()
         create_qr_code(data, logo_path, qr_color=qr_color, bg_color=bg_color, shape=shape, gradient=gradient, frame_width=frame_width, frame_color=frame_color)
 
