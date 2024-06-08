@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generation API Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding: 20px;
+            background: #fff;
+            margin-top: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f2f2f2;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        pre {
+            background-color: #f2f2f2;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QR Code Generation API</h1>
+        <p>This API allows you to generate customized QR codes with various options, including gradient backgrounds, logos, custom text, and more.</p>
+        
+        <h2>Base URL</h2>
+        <p><code>http://127.0.0.1:5000</code></p>
+        
+        <h2>Endpoint</h2>
+        <h3>Generate QR Code</h3>
+        <p><code>POST /generate_qrcode</code></p>
+        
+        <h2>Request Parameters</h2>
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>data</code></td>
+                <td>string</td>
+                <td><strong>Required.</strong> The data to encode in the QR code.</td>
+            </tr>
+            <tr>
+                <td><code>logo</code></td>
+                <td>file</td>
+                <td><strong>Optional.</strong> The logo image file to embed in the center of the QR code.</td>
+            </tr>
+            <tr>
+                <td><code>shape</code></td>
+                <td>string</td>
+                <td><strong>Optional.</strong> The shape of the QR code modules. Can be <code>square</code> (default) or <code>circle</code>.</td>
+            </tr>
+            <tr>
+                <td><code>gradient</code></td>
+                <td>boolean</td>
+                <td><strong>Optional.</strong> Whether to apply a gradient background. Default is <code>false</code>.</td>
+            </tr>
+            <tr>
+                <td><code>frame_width</code></td>
+                <td>integer</td>
+                <td><strong>Optional.</strong> The width of the frame around the QR code in pixels. Default is <code>0</code> (no frame).</td>
+            </tr>
+            <tr>
+                <td><code>frame_color</code></td>
+                <td>string</td>
+                <td><strong>Optional.</strong> The color of the frame around the QR code. Default is <code>black</code>.</td>
+            </tr>
+            <tr>
+                <td><code>custom_text</code></td>
+                <td>string</td>
+                <td><strong>Optional.</strong> Custom text to display below the QR code.</td>
+            </tr>
+            <tr>
+                <td><code>text_color</code></td>
+                <td>string</td>
+                <td><strong>Optional.</strong> The color of the custom text. Default is <code>black</code>.</td>
+            </tr>
+            <tr>
+                <td><code>text_font</code></td>
+                <td>string</td>
+                <td><strong>Optional.</strong> The font of the custom text. Default is <code>Arial</code>.</td>
+            </tr>
+            <tr>
+                <td><code>text_size</code></td>
+                <td>integer</td>
+                <td><strong>Optional.</strong> The size of the custom text in points. Default is <code>20</code>.</td>
+            </tr>
+            <tr>
+                <td><code>bold</code></td>
+                <td>boolean</td>
+                <td><strong>Optional.</strong> Whether to display the custom text in bold. Default is <code>false</code>.</td>
+            </tr>
+            <tr>
+                <td><code>italic</code></td>
+                <td>boolean</td>
+                <td><strong>Optional.</strong> Whether to display the custom text in italic. Default is <code>false</code>.</td>
+            </tr>
+            <tr>
+                <td><code>underline</code></td>
+                <td>boolean</td>
+                <td><strong>Optional.</strong> Whether to underline the custom text. Default is <code>false</code>.</td>
+            </tr>
+        </table>
+        
+        <h2>Example Request</h2>
+        <h3>cURL</h3>
+        <pre><code>curl -X POST http://127.0.0.1:5000/generate_qrcode \
+-F 'data=https://example.com' \
+-F 'logo=@path/to/logo.png' \
+-F 'shape=square' \
+-F 'gradient=true' \
+-F 'frame_width=10' \
+-F 'frame_color=red' \
+-F 'custom_text=Visit Us!' \
+-F 'text_color=green' \
+-F 'text_font=Arial' \
+-F 'text_size=25' \
+-F 'bold=true' \
+-F 'italic=true' \
+-F 'underline=true' \
+--output qrcode.png</code></pre>
+        
+        <h2>Example Response</h2>
+        <p>The response will be a PNG image file containing the generated QR code, downloaded as <code>qrcode.png</code>.</p>
+        
+        <h2>Response Headers</h2>
+        <table>
+            <tr>
+                <th>Header</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td><code>Content-Type</code></td>
+                <td>image/png</td>
+            </tr>
+            <tr>
+                <td><code>Content-Disposition</code></td>
+                <td>attachment; filename="qrcode.png"</td>
+            </tr>
+        </table>
+        
+        <h2>Error Responses</h2>
+        <p>If any required parameters are missing or invalid, the API will return an appropriate HTTP status code and error message.</p>
+        
+        <h3>400 Bad Request</h3>
+        <ul>
+            <li>Missing required parameter <code>data</code>.</li>
+            <li>Invalid parameter values.</li>
+        </ul>
+        
+        <h3>Example Error Response</h3>
+        <pre><code>{
+    "error": "Missing required parameter: data"
+}</code></pre>
+        
+        <h2>Notes</h2>
+        <ul>
+            <li>Ensure the logo image file is accessible when making the request.</li>
+            <li>The <code>text_font</code> parameter should be a valid font available on the server.</li>
+        </ul>
+        
+        <h2>Contact</h2>
+        <p>For any questions or issues, please contact the API support team at <a href="mailto:support@example.com">support@example.com</a>.</p>
+    </div>
+</body>
+</html>
+

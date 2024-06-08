@@ -1,5 +1,5 @@
 import qrcode
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from collections import Counter
 import tkinter as tk
 from tkinter import filedialog, colorchooser
@@ -30,7 +30,7 @@ def get_gradient_color(colors, x, y, width, height):
     b = int(colors[0][2] * (1 - ratio) + colors[1][2] * ratio)
     return (r, g, b)
 
-def create_qr_code(data, logo_path=None, filename="custom_qrcode.png", qr_color="black", bg_color="white", shape="circle", gradient=False, frame_width=0, frame_color="black"):
+def create_qr_code(data, logo_path=None, filename="custom_qrcode.png", qr_color="black", bg_color="white", shape="circle", gradient=False, frame_width=0, frame_color="black", custom_text=None, text_color="black", text_font="Arial", text_size=20, bold=False, italic=False, underline=False):
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
@@ -78,6 +78,31 @@ def create_qr_code(data, logo_path=None, filename="custom_qrcode.png", qr_color=
     if logo_path:
         pos = ((combined.size[0] - logo.size[0]) // 2, (combined.size[1] - logo.size[1]) // 2)
         combined.paste(logo, pos, mask=logo)
+
+    if custom_text:
+        draw = ImageDraw.Draw(combined)
+        font_style = ''
+        if bold:
+            font_style += 'Bold'
+        if italic:
+            font_style += 'Italic'
+        
+        # Fallback to a default font if the specified font is not found
+        try:
+            font_path = f"/Library/Fonts/{text_font} {font_style}.ttf" if font_style else f"/Library/Fonts/{text_font}.ttf"
+            font = ImageFont.truetype(font_path, text_size)
+        except IOError:
+            font = ImageFont.load_default()
+
+        text_bbox = draw.textbbox((0, 0), custom_text, font=font)
+        text_size_calculated = (text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1])
+        text_position = ((combined.size[0] - text_size_calculated[0]) // 2, combined.size[1] - text_size_calculated[1] - 10)
+        draw.text(text_position, custom_text, fill=text_color, font=font)
+
+        # Underline text if selected
+        if underline:
+            underline_y = text_position[1] + text_size_calculated[1]
+            draw.line([(text_position[0], underline_y), (text_position[0] + text_size_calculated[0], underline_y)], fill=text_color, width=2)
 
     if frame_width > 0:
         img_with_frame = Image.new('RGB', (combined.size[0] + 2 * frame_width, combined.size[1] + 2 * frame_width), frame_color)
@@ -144,8 +169,44 @@ class QRCodeApp:
         self.no_frame_check = tk.Checkbutton(root, text="No Frame", variable=self.no_frame)
         self.no_frame_check.grid(row=8, column=0, padx=10, pady=10)
 
+        self.text_label = tk.Label(root, text="Custom Text:")
+        self.text_label.grid(row=9, column=0, padx=10, pady=10)
+        self.custom_text = tk.StringVar()
+        self.text_entry = tk.Entry(root, textvariable=self.custom_text, width=50)
+        self.text_entry.grid(row=9, column=1, padx=10, pady=10)
+
+        self.text_color_label = tk.Label(root, text="Text Color:")
+        self.text_color_label.grid(row=10, column=0, padx=10, pady=10)
+        self.text_color = tk.StringVar(value="black")
+        self.text_color_button = tk.Button(root, text="Choose Text Color", command=self.choose_text_color)
+        self.text_color_button.grid(row=10, column=1, padx=10, pady=10)
+
+        self.font_label = tk.Label(root, text="Font Style:")
+        self.font_label.grid(row=11, column=0, padx=10, pady=10)
+        self.font_style = tk.StringVar(value="Arial")
+        self.font_menu = ttk.Combobox(root, textvariable=self.font_style, values=["Arial", "Courier", "Times New Roman", "Helvetica", "Verdana"])
+        self.font_menu.grid(row=11, column=1, padx=10, pady=10)
+
+        self.size_label = tk.Label(root, text="Text Size:")
+        self.size_label.grid(row=12, column=0, padx=10, pady=10)
+        self.text_size = tk.IntVar(value=20)
+        self.size_entry = tk.Entry(root, textvariable=self.text_size, width=10)
+        self.size_entry.grid(row=12, column=1, padx=10, pady=10)
+
+        self.bold = tk.BooleanVar(value=False)
+        self.bold_check = tk.Checkbutton(root, text="Bold", variable=self.bold)
+        self.bold_check.grid(row=13, column=0, padx=10, pady=10)
+
+        self.italic = tk.BooleanVar(value=False)
+        self.italic_check = tk.Checkbutton(root, text="Italic", variable=self.italic)
+        self.italic_check.grid(row=13, column=1, padx=10, pady=10)
+
+        self.underline = tk.BooleanVar(value=False)
+        self.underline_check = tk.Checkbutton(root, text="Underline", variable=self.underline)
+        self.underline_check.grid(row=13, column=2, padx=10, pady=10)
+
         self.generate_button = tk.Button(root, text="Generate QR Code", command=self.generate_qr_code)
-        self.generate_button.grid(row=9, column=0, columnspan=3, pady=20)
+        self.generate_button.grid(row=14, column=0, columnspan=3, pady=20)
 
     def browse_logo(self):
         filename = filedialog.askopenfilename(
@@ -175,6 +236,11 @@ class QRCodeApp:
         if color[1]:
             self.frame_color.set(color[1])
 
+    def choose_text_color(self):
+        color = colorchooser.askcolor(title="Choose Text Color")
+        if color[1]:
+            self.text_color.set(color[1])
+
     def generate_qr_code(self):
         data = self.url_entry.get()
         logo_path = self.logo_path.get()
@@ -184,7 +250,14 @@ class QRCodeApp:
         gradient = self.gradient.get()
         frame_width = 0 if self.no_frame.get() else self.frame_width.get()
         frame_color = self.frame_color.get()
-        create_qr_code(data, logo_path, qr_color=qr_color, bg_color=bg_color, shape=shape, gradient=gradient, frame_width=frame_width, frame_color=frame_color)
+        custom_text = self.custom_text.get()
+        text_color = self.text_color.get()
+        text_font = self.font_style.get()
+        text_size = self.text_size.get()
+        bold = self.bold.get()
+        italic = self.italic.get()
+        underline = self.underline.get()
+        create_qr_code(data, logo_path, qr_color=qr_color, bg_color=bg_color, shape=shape, gradient=gradient, frame_width=frame_width, frame_color=frame_color, custom_text=custom_text, text_color=text_color, text_font=text_font, text_size=text_size, bold=bold, italic=italic, underline=underline)
 
 if __name__ == "__main__":
     root = tk.Tk()
